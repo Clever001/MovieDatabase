@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/projectFiles">
+        <file>data/projectImages/screensaver.jpg</file>
+        <file>data/projectImages/save_img.png</file>
+        <file>data/projectImages/help_img.png</file>
+        <file>data/projectImages/info_img.png</file>
+        <file>data/projectImages/load_img.png</file>
+        <file>data/projectImages/add_img.png</file>
+        <file>data/projectImages/edit_img.png</file>
+        <file>data/projectImages/loupe_img.png</file>
+        <file>data/projectImages/view_all.png</file>
+    </qresource>
+</RCC>
