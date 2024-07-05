@@ -9,6 +9,9 @@ namespace Ui {
 class MainWindow;
 }
 
+struct MovieOutput;
+struct SearchArgs;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -61,19 +64,20 @@ private:
     MoviesManager *manager;
     vector<const Movie*> movies;
     size_t offset; // window index
+    vector<MovieOutput> moviesOutput;
+    QString dataPath;
 
 
     void editMovie(const Movie *curMovie);
     void printMovies() const;
     void deleteMovie(size_t index);
+    void changeOffset(size_t val);
 };
 
 struct MovieOutput{
-    QLabel *label, *date;
-    MovieOutput(QLabel* label, QLabel* date){
-        this->label = label;
-        this->date = date;
-    }
+    QLabel *label, *date, *poster;
+    MovieOutput(QLabel* label, QLabel* date, QLabel* poster):
+        label(label), date(date), poster(poster) {}
 };
 
 struct SearchArgs{

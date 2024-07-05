@@ -218,11 +218,10 @@ void EditMovieWindow::on_editMovieButton_clicked()
         }
 
     double rating;
-    try {
-        checkRating(rating_str);
+    if (checkRating(rating_str)){
         rating = stod(rating_str);
-    } catch (...) {
-        QMessageBox::warning(this, "Изменение фильма", "Неправильный райтинг.");
+    } else {
+        QMessageBox::warning(this, "Создание фильма", "Неправильный рейтинг.");
         return;
     }
 

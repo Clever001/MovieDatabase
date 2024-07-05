@@ -13,9 +13,14 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    dataPath = QDir::currentPath() + "/data/";
+    moviesOutput.push_back(MovieOutput(ui->movie1Label, ui->movie1Date, ui->movie1Poster));
+    moviesOutput.push_back(MovieOutput(ui->movie2Label, ui->movie2Date, ui->movie2Poster));
+    moviesOutput.push_back(MovieOutput(ui->movie3Label, ui->movie3Date, ui->movie3Poster));
+    moviesOutput.push_back(MovieOutput(ui->movie4Label, ui->movie4Date, ui->movie4Poster));
     manager = new MoviesManager();
     movies = manager->search();
-    offset = 0;
+    changeOffset(0);
     printMovies();
     ui->statusBar->showMessage("Приложение запущено успешно!");
 }
@@ -26,22 +31,33 @@ MainWindow::~MainWindow()
     delete manager;
 }
 
-void MainWindow::printMovies() const {
-    vector<MovieOutput> output;
-    output.push_back(MovieOutput(ui->movie1Label, ui->movie1Date));
-    output.push_back(MovieOutput(ui->movie2Label, ui->movie2Date));
-    output.push_back(MovieOutput(ui->movie3Label, ui->movie3Date));
-    output.push_back(MovieOutput(ui->movie4Label, ui->movie4Date));
+void MainWindow::changeOffset(size_t val){
+    offset = val;
+    ui->offsetLabel->setText("Отступ: " + QString::fromStdString(to_string(val)));
+}
 
+void MainWindow::printMovies() const {
     size_t cnt = movies.size();
     for (size_t i = 0; i != 4; ++i) {
         if (i + offset < cnt){
-            output[i].label->setText(QString::fromStdString(movies[i + offset]->title));
-            output[i].date->setText(QString::fromStdString(movies[i + offset]->release_date));
+            moviesOutput[i].label->setText(QString::fromStdString(movies[i + offset]->title));
+            moviesOutput[i].date->setText(QString::fromStdString(movies[i + offset]->release_date));
+            QString curPos = dataPath + "posters/" + QString::fromStdString(movies[i + offset]->poster);
+            if (QFile::exists(curPos)){
+                QPixmap pixmap(curPos);
+                int h = moviesOutput[i].poster->height();
+                int w = moviesOutput[i].poster->width();
+                moviesOutput[i].poster->setPixmap(pixmap.scaled(w,h,Qt::KeepAspectRatio));
+            } else {
+                moviesOutput[i].poster->clear();
+                moviesOutput[i].poster->setText("Нет фильма");
+            }
         }
         else {
-            output[i].label->setText(QString::fromStdString("Нет фильма"));
-            output[i].date->setText(QString::fromStdString("Нет фильма"));
+            moviesOutput[i].label->setText(QString::fromStdString("Нет фильма"));
+            moviesOutput[i].date->setText(QString::fromStdString("Нет фильма"));
+            moviesOutput[i].poster->clear();
+            moviesOutput[i].poster->setText("Нет фильма");
         }
     }
 }
@@ -77,7 +93,7 @@ void MainWindow::editMovie(const Movie *curMovie) {
     }
     else if (manager->editMovie(curMovie->title, curMovie->release_date, tmp)){
         movies = manager->search();
-        offset = 0;
+        changeOffset(0);
         printMovies();
         ui->statusBar->showMessage("Фильм был успешно изменен.");
     }
@@ -128,14 +144,14 @@ void MainWindow::on_complexSearchButton_clicked()
     window.exec();
 
     movies = manager->search(searchArgs.title, searchArgs.genre, searchArgs.release_date, searchArgs.min_rating, searchArgs.max_rating);
-    offset = 0;
+    changeOffset(0);
     printMovies();
     ui->statusBar->showMessage("Фильтр поиска успешно изменен!");
 }
 
 void MainWindow::on_saveAction_triggered()
 {
-    QString savePath = QDir::currentPath() + "/data/json/";
+    QString savePath = dataPath + "json/";
     QDir().mkpath(savePath);
     savePath += "data.json";
     try {
@@ -150,12 +166,12 @@ void MainWindow::on_saveAction_triggered()
 
 void MainWindow::on_loadAction_triggered()
 {
-    const QString savePath = QDir::currentPath() + "/data/json/data.json";
+    const QString savePath = dataPath + "json/data.json";
     if (QFile::exists(savePath)){
         try {
             manager->loadFromDb(savePath.toStdString());
             movies = manager->search();
-            offset = 0;
+            changeOffset(0);
             printMovies();
             QMessageBox::information(this, "Получение информации", "Информация успешно загружена с диска.");
             ui->statusBar->showMessage("Информация загружена с диска.");
@@ -172,25 +188,25 @@ void MainWindow::on_loadAction_triggered()
 void MainWindow::on_nextButton_clicked()
 {
     if (offset < movies.size())
-        ++offset;
+        changeOffset(offset + 1);
     printMovies();
 }
 
 void MainWindow::on_previousButton_clicked()
 {
     if (offset > 0)
-        --offset;
+        changeOffset(offset - 1);
     printMovies();
 }
 
 void MainWindow::deleteMovie(size_t index) {
     if (offset + index < movies.size()){
-        QString posterPath = QDir::currentPath() + "/data/posters/" + QString::fromStdString(movies[offset + index]->poster);
+        QString posterPath = dataPath + "posters/" + QString::fromStdString(movies[offset + index]->poster);
         if (QFile::exists(posterPath))
             QFile::remove(posterPath);
         manager->removeMovie(movies[offset + index]->title, movies[offset + index]->release_date);
         movies = manager->search();
-        offset = 0;
+        changeOffset(0);
         printMovies();
         QMessageBox::information(this, "Удаление фильма", "Фильм успешно удален.");
         ui->statusBar->showMessage("Фильм успешно удален.");
@@ -223,7 +239,7 @@ void MainWindow::on_movie4DelButton_clicked()
 void MainWindow::on_lineEdit_textChanged(const QString &arg1)
 {
     movies = manager->search(ui->lineEdit->text().toStdString());
-    offset = 0;
+    changeOffset(0);
     printMovies();
     if (arg1.isEmpty()){
         ui->statusBar->showMessage("Вывод всех фильмов.");
@@ -235,7 +251,7 @@ void MainWindow::on_lineEdit_textChanged(const QString &arg1)
 void MainWindow::on_actionnotReleasedAction_triggered()
 {
     movies = manager->searchNotReleased(QDate::currentDate().toString("dd.MM.yyyy").toStdString());
-    offset = 0;
+    changeOffset(0);
     printMovies();
     ui->statusBar->showMessage("Показаны еще не выпущенные в прокат фильмы.");
 }
@@ -243,7 +259,7 @@ void MainWindow::on_actionnotReleasedAction_triggered()
 void MainWindow::on_viewAllFilmsAction_triggered()
 {
     movies = manager->search();
-    offset = 0;
+    changeOffset(0);
     printMovies();
     ui->statusBar->showMessage("Вывод всех фильмов.");
 }

@@ -200,13 +200,13 @@ void NewMovieWindow::on_addMovieButton_clicked()
     }
 
     double rating;
-    try {
-        checkRating(rating_str);
+    if (checkRating(rating_str)){
         rating = stod(rating_str);
-    } catch (...) {
-        QMessageBox::warning(this, "Создание фильма", "Неправильный райтинг.");
+    } else {
+        QMessageBox::warning(this, "Создание фильма", "Неправильный рейтинг.");
         return;
     }
+
 
     try {
         Movie newMovie(title, posterName, date, genres, rating, description);
