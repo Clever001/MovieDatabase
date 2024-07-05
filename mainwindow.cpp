@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
     dataPath = QDir::currentPath() + "/data/";
     moviesOutput.push_back(MovieOutput(ui->movie1Label, ui->movie1Date, ui->movie1Poster));
     moviesOutput.push_back(MovieOutput(ui->movie2Label, ui->movie2Date, ui->movie2Poster));
@@ -27,8 +28,20 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    delete ui;
     delete manager;
+    delete ui;
+}
+
+void MainWindow::closeEvent(QCloseEvent *event) {
+    // Отображение диалогового окна с вопросом
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Закрытие приложения", "Вы хотите сохранить изменения?",
+                                  QMessageBox::Yes | QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) {
+        // Вызов действия сохранения
+        ui->saveAction->trigger();
+    }
 }
 
 void MainWindow::changeOffset(size_t val){
@@ -50,7 +63,7 @@ void MainWindow::printMovies() const {
                 moviesOutput[i].poster->setPixmap(pixmap.scaled(w,h,Qt::KeepAspectRatio));
             } else {
                 moviesOutput[i].poster->clear();
-                moviesOutput[i].poster->setText("Нет фильма");
+                moviesOutput[i].poster->setText("Картинка не была найдена.");
             }
         }
         else {
@@ -166,6 +179,12 @@ void MainWindow::on_saveAction_triggered()
 
 void MainWindow::on_loadAction_triggered()
 {
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Получение информации", "Все текущие данные будут потеряны.\n\nВы точно хотите загрузить информацию из БД?",
+                                  QMessageBox::Yes | QMessageBox::No);
+
+    if (reply == QMessageBox::No) return;
+
     const QString savePath = dataPath + "json/data.json";
     if (QFile::exists(savePath)){
         try {
