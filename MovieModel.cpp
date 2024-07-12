@@ -8,6 +8,7 @@
 #include <json.hpp>
 #include <stdexcept>
 #include <string>
+#include <QString>
 
 using json = nlohmann::json;
 
@@ -99,14 +100,10 @@ bool Movie::operator==(const Movie& other) const {
         );
 }
 
-void MoviesManager::addMovie(const Movie& movie) {
-    movies.push_back(movie);
-}
-
 bool MoviesManager::removeMovie(const string& title, const string& release_date) {
-    for (auto iter = movies.begin(); iter != movies.end(); iter++) {
+    for (auto iter = this->begin(); iter != this->end(); iter++) {
         if (iter->title == title && iter->release_date == release_date) {
-            movies.erase(iter);
+            this->erase(iter);
             return true;
         }
     }
@@ -114,10 +111,10 @@ bool MoviesManager::removeMovie(const string& title, const string& release_date)
 }
 
 bool MoviesManager::editMovie(const string& title, const string& release_date, const Movie& movie) {
-    auto iter = find_if(movies.begin(), movies.end(), [&title, &release_date](const Movie& item) {
+    auto iter = find_if(this->begin(), this->end(), [&title, &release_date](const Movie& item) {
         return item.title == title && item.release_date == release_date;
         });
-    if (iter == movies.end()) return false;
+    if (iter == this->end()) return false;
     *iter = movie;
     return true;
 }
@@ -131,13 +128,13 @@ vector<const Movie*> MoviesManager::search(const string& title, const string& ge
 
     vector<const Movie*> ans;
     if (title == "" && genre == "" && release_date == "" && min_rating == -1.0 && max_rating == -1.0) {
-        for (const Movie& item : movies) {
+        for (const Movie& item : *this) {
             ans.push_back(&item);
         }
         return ans;
     }
 
-    for (const Movie& item : movies) {
+    for (const Movie& item : *this) {
         if ((title == "" || MoviesManager::containsWord(title, item.title)) &&
             (genre == "" || any_of(item.genres.begin(), item.genres.end(),
                 [&genre](const string& item_genre) {return MoviesManager::containsWord(genre, item_genre); })) &&
@@ -159,7 +156,7 @@ vector<const Movie*> MoviesManager::search(const string& cur_date, Compare compa
     array<int, 3> p_cur = Movie::parseDate(cur_date);
     vector<const Movie*> ans;
 
-    for (const Movie& item : movies) {
+    for (const Movie& item : *this) {
         array<int, 3> p_item = Movie::parseDate(item.release_date);
         if (cmp(p_item, p_cur))
             ans.push_back(&item);
@@ -183,12 +180,17 @@ vector<int> MoviesManager::prefixFunction(const string& str) {
 
 
 static void lower(string& input) {
+    /*
     wstring_convert<codecvt_utf8_utf16<wchar_t>> converter;
     wstring wideStr = converter.from_bytes(input);
 
     transform(wideStr.begin(), wideStr.end(), wideStr.begin(), towlower);
 
     input = converter.to_bytes(wideStr);
+    */
+    QString str = QString::fromStdString(input);
+    str = str.toLower();
+    input = str.toStdString();
 }
 
 bool MoviesManager::containsWord(string word, string text) {
@@ -214,7 +216,7 @@ void MoviesManager::loadFromDb(const string& db_path) {
     file >> j;
     file.close();
 
-    movies.clear();
+    this->clear();
     for (const auto& item : j) {
         Movie movie(
             item.at("title").get<std::string>(),
@@ -224,13 +226,13 @@ void MoviesManager::loadFromDb(const string& db_path) {
             item.at("rating").get<double>(),
             item.at("description").get<std::string>()
         );
-        movies.push_back(movie);
+        this->push_back(movie);
     }
 }
 
 void MoviesManager::saveToDb(const string& db_path) const {
     json j = json::array();
-    for (const auto& movie : movies) {
+    for (const auto& movie : *this) {
         j.push_back({
             {"title", movie.title},
             {"poster", movie.poster},
@@ -250,23 +252,15 @@ void MoviesManager::saveToDb(const string& db_path) const {
     file.close();
 }
 
-size_t MoviesManager::size() const {
-    return movies.size();
-}
-
-bool MoviesManager::empty() const {
-    return movies.empty();
-}
-
 bool MoviesManager::duplicatePoster(const string& poster) const {
-    for (auto iter = movies.begin(); iter != movies.end(); ++iter) {
+    for (auto iter = this->begin(); iter != this->end(); ++iter) {
         if (iter->poster == poster) return true;
     }
     return false;
 }
 
 bool MoviesManager::duplicateTitleAndDate(const string& title, const string& date) const {
-    for (auto iter = movies.begin(); iter != movies.end(); ++iter) {
+    for (auto iter = this->begin(); iter != this->end(); ++iter) {
         if (iter->title == title && iter->release_date == date)
             return true;
     }

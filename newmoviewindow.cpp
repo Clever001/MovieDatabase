@@ -217,7 +217,7 @@ void NewMovieWindow::on_addMovieButton_clicked()
 
     try {
         Movie newMovie(title, posterName, date, vector<string>(genres.begin(), genres.end()), rating, description);
-        manager->addMovie(newMovie);
+        manager->push_back(newMovie);
         movieIsSaved = true;
         QMessageBox::warning(this, "Создание фильма", "Фильм успешно сохранен!");
     } catch (...) {

@@ -29,22 +29,17 @@ enum Compare {
     More, Less, Equal
 };
 
-class MoviesManager {
-    list<Movie> movies;
-
+class MoviesManager : public list<Movie> {
     static vector<int> prefixFunction(const string& str);
 public:
     void loadFromDb(const string& db_path);
     void saveToDb(const string& db_path) const;
-    void addMovie(const Movie& movie);
     bool removeMovie(const string& title, const string& release_date);
     bool editMovie(const string& title, const string& release_date, const Movie& movie);
     vector<const Movie*> search(const string& title = "", const string& genre = "", const string& release_date = "",
         double min_rating = -1, double max_rating = -1) const;
     vector<const Movie*> search(const string& cur_date, Compare compare) const;
     static bool containsWord(string word, const string text);
-    size_t size() const;
-    bool empty() const;
     bool duplicatePoster(const string& poster) const;
     bool duplicateTitleAndDate(const string& title, const string& date) const;
 };
