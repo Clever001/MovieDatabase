@@ -42,4 +42,5 @@ public:
     size_t size() const;
     bool empty() const;
     bool duplicatePoster(const string& poster) const;
+    bool duplicateTitleAndDate(const string& title, const string& date) const;
 };

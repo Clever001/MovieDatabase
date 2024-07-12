@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QListWidget>
+#include <list>
 #include "MovieModel.h"
 
 namespace Ui {
@@ -40,7 +41,7 @@ private:
     Movie *curMovie;
     MoviesManager *manager;
     string oldPosterName, newPosterName;
-    vector<string> genres;
+    list<string> genres;
     bool isEdited;
 
 

@@ -90,7 +90,7 @@ void NewMovieWindow::on_addGenreButton_clicked()
         ui->newGenre->setText(QString::fromStdString(""));
     }
     else {
-        QMessageBox::warning(this, "Неправильный жанр.", "Перепроверьте правильно ли у вас записан жанр. В нем не должны встречаться спец. символы. Также он должен быть уникальным.");
+        QMessageBox::warning(this, "Неправильный жанр", "Перепроверьте правильно ли у вас записан жанр. В нем не должны встречаться спец. символы. Также он должен быть уникальным.");
     }
 }
 
@@ -207,9 +207,16 @@ void NewMovieWindow::on_addMovieButton_clicked()
         return;
     }
 
+    if (manager->duplicateTitleAndDate(title, date)){
+        QMessageBox::warning(this, "Создание фильма", "Фильм с таким названием и датой выхода в прокат уже создан. "
+                                                      "Так как оба эти поля должны быть взаимно уникальны поменяйте название фильма или "
+                                                      "дату выхода в прокат.");
+        return;
+    }
+
 
     try {
-        Movie newMovie(title, posterName, date, genres, rating, description);
+        Movie newMovie(title, posterName, date, vector<string>(genres.begin(), genres.end()), rating, description);
         manager->addMovie(newMovie);
         movieIsSaved = true;
         QMessageBox::warning(this, "Создание фильма", "Фильм успешно сохранен!");

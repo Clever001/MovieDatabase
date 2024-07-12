@@ -136,22 +136,6 @@ vector<const Movie*> MoviesManager::search(const string& title, const string& ge
             (min_rating == -1 && max_rating == -1 || item.rating >= min_rating && item.rating <= max_rating))
             ans.push_back(&item);
     }
-
-    /*
-    copy_if(movies.begin(), movies.end(), back_inserter(ans),
-        [&title, &genre, &release_date, &min_rating, &max_rating](const Movie& item) {
-            if (title != "" && !MoviesManager::containsWord(title, item.title))// item.title != title)
-                return false;
-            if (genre != "" && all_of(item.genres.begin(), item.genres.end(),
-                [&genre](const string& item_genre) {return item_genre != genre; }))
-                return false;
-            if (release_date != "" && item.release_date != release_date)
-                return false;
-            if (min_rating != -1 && max_rating != -1)
-                return item.rating >= min_rating && item.rating <= max_rating;
-            return true;
-        });
-    */
     return ans;
 }
 
@@ -273,6 +257,14 @@ bool MoviesManager::empty() const {
 bool MoviesManager::duplicatePoster(const string& poster) const {
     for (auto iter = movies.begin(); iter != movies.end(); ++iter) {
         if (iter->poster == poster) return true;
+    }
+    return false;
+}
+
+bool MoviesManager::duplicateTitleAndDate(const string& title, const string& date) const {
+    for (auto iter = movies.begin(); iter != movies.end(); ++iter) {
+        if (iter->title == title && iter->release_date == date)
+            return true;
     }
     return false;
 }

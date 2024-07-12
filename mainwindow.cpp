@@ -114,7 +114,6 @@ void MainWindow::editMovie(const Movie *curMovie) {
         QMessageBox::warning(this, "Ошибка", "Ошибка в работе приложения.");
         close();
     }
-
 }
 
 void MainWindow::on_movie1EditButton_clicked()

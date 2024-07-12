@@ -4,7 +4,7 @@
 #include <QDialog>
 #include <QListWidget>
 #include "MovieModel.h"
-#include <vector>
+#include <list>
 
 namespace Ui {
 class NewMovieWindow;
@@ -38,7 +38,7 @@ private slots:
 private:
     Ui::NewMovieWindow *ui;
     MoviesManager *manager;
-    vector<string> genres;
+    list<string> genres;
     string posterName;
     bool movieIsSaved;
 

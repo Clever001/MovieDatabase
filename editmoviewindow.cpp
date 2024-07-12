@@ -221,15 +221,24 @@ void EditMovieWindow::on_editMovieButton_clicked()
     if (checkRating(rating_str)){
         rating = stod(rating_str);
     } else {
-        QMessageBox::warning(this, "Создание фильма", "Неправильный рейтинг.");
+        QMessageBox::warning(this, "Изменение фильма", "Неправильный рейтинг.");
         return;
     }
 
-    if (newPosterName != "")
-        deleteOldPoster();
+    /*
+    if (manager->duplicateTitleAndDate(title, date)) {
+        QMessageBox::warning(this, "Изменение фильма", "Фильм с таким названием и датой выхода в прокат уже создан. "
+                                                       "Так как оба эти поля должны быть взаимно уникальны поменяйте название фильма или "
+                                                       "дату выхода в прокат.");
+        return;
+    }
+       */
 
     try {
-        *curMovie = Movie(title, (newPosterName == "") ? oldPosterName : newPosterName, date, genres, rating, description);
+        if (newPosterName != "")
+            deleteOldPoster();
+
+        *curMovie = Movie(title, (newPosterName == "") ? oldPosterName : newPosterName, date, vector<string>(genres.begin(), genres.end()), rating, description);
         isEdited = true;
 
         QMessageBox::warning(this, "Изменение фильма", "Фильм успешно сохранен!");
