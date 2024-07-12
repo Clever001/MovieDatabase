@@ -25,6 +25,10 @@ public:
     bool operator==(const Movie& other) const;
 };
 
+enum Compare {
+    More, Less, Equal
+};
+
 class MoviesManager {
     list<Movie> movies;
 
@@ -37,7 +41,7 @@ public:
     bool editMovie(const string& title, const string& release_date, const Movie& movie);
     vector<const Movie*> search(const string& title = "", const string& genre = "", const string& release_date = "",
         double min_rating = -1, double max_rating = -1) const;
-    vector<const Movie*> searchNotReleased(const string& cur_date) const;
+    vector<const Movie*> search(const string& cur_date, Compare compare) const;
     static bool containsWord(string word, const string text);
     size_t size() const;
     bool empty() const;

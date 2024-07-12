@@ -19,6 +19,9 @@ EditMovieWindow::EditMovieWindow(QWidget *parent, Movie *curMovie, MoviesManager
 
     oldPosterName = curMovie->poster;
 
+    originalName = curMovie->title;
+    originalDate = curMovie->release_date;
+
     for (const string& genre : curMovie->genres){
         genres.push_back(genre);
         ui->editGenresList->addItem(QString::fromStdString(genre));
@@ -225,14 +228,13 @@ void EditMovieWindow::on_editMovieButton_clicked()
         return;
     }
 
-    /*
-    if (manager->duplicateTitleAndDate(title, date)) {
-        QMessageBox::warning(this, "Изменение фильма", "Фильм с таким названием и датой выхода в прокат уже создан. "
-                                                       "Так как оба эти поля должны быть взаимно уникальны поменяйте название фильма или "
-                                                       "дату выхода в прокат.");
-        return;
+    if (title != originalName || date != originalDate){
+        if (manager->duplicateTitleAndDate(title, date)){
+            QMessageBox::warning(this, "Изменение фильма", "Фильм с таким названием и датой выхода в прокат уже был создан. "
+                                                           "Пожалуйста, измените название фильма или дату выхода в прокат.");
+            return;
+        }
     }
-       */
 
     try {
         if (newPosterName != "")

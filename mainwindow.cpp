@@ -268,7 +268,7 @@ void MainWindow::on_lineEdit_textChanged(const QString &arg1)
 
 void MainWindow::on_actionnotReleasedAction_triggered()
 {
-    movies = manager->searchNotReleased(QDate::currentDate().toString("dd.MM.yyyy").toStdString());
+    movies = manager->search(QDate::currentDate().toString("dd.MM.yyyy").toStdString(), Compare::More);
     changeOffset(0);
     printMovies();
     ui->statusBar->showMessage("Показаны еще не выпущенные в прокат фильмы.");

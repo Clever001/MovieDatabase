@@ -41,6 +41,7 @@ private:
     Movie *curMovie;
     MoviesManager *manager;
     string oldPosterName, newPosterName;
+    string originalName, originalDate;
     list<string> genres;
     bool isEdited;
 

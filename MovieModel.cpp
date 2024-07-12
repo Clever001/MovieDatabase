@@ -8,7 +8,6 @@
 #include <json.hpp>
 #include <stdexcept>
 #include <string>
-#include <QString>
 
 using json = nlohmann::json;
 
@@ -33,7 +32,12 @@ array<int, 3> Movie::parseDate(const string& date) {
         buf += ch;
         if (ch == '.') {
             if (cur > 1 || buf == "") throw invalid_argument("Invalid field: date.");
-            parsed_date[cur] = stoi(buf);
+            try {
+                parsed_date[cur] = stoi(buf);
+            }
+            catch (const invalid_argument& ex) {
+                throw invalid_argument("Invalid field: date.");
+            }
             buf.clear();
             ++cur;
         }
@@ -74,6 +78,9 @@ int Movie::daysCount(int month, int year) {
 
 void Movie::checkDate(const string& date) {
     if (date == "") throw length_error("Empty field: date.");
+    for (char ch : date){
+        if (ch == ' ') throw invalid_argument("Invalid field: date.");
+    }
     array<int, 3> parsed_date = Movie::parseDate(date);
     if (parsed_date[2] < 1900) throw invalid_argument("Not correct year");
     if (parsed_date[1] < 1 || parsed_date[1] > 12) throw invalid_argument("Not correct month.");
@@ -115,6 +122,8 @@ bool MoviesManager::editMovie(const string& title, const string& release_date, c
     return true;
 }
 
+
+
 vector<const Movie*> MoviesManager::search(const string& title, const string& genre,
     const string& release_date, double min_rating, double max_rating) const {
 
@@ -139,23 +148,23 @@ vector<const Movie*> MoviesManager::search(const string& title, const string& ge
     return ans;
 }
 
-vector<const Movie*> MoviesManager::searchNotReleased(const string& cur_date) const {
+vector<const Movie*> MoviesManager::search(const string& cur_date, Compare compare) const {
+    auto cmp = [compare](const array<int, 3>& p_item, const array<int, 3>& p_cur){
+        if (compare == Compare::More) return tie(p_item[2], p_item[1], p_item[0]) > tie(p_cur[2], p_cur[1], p_cur[0]);
+        if (compare == Compare::Less) return tie(p_item[2], p_item[1], p_item[0]) < tie(p_cur[2], p_cur[1], p_cur[0]);
+        return tie(p_item[2], p_item[1], p_item[0]) == tie(p_cur[2], p_cur[1], p_cur[0]);
+    };
+
     Movie::checkDate(cur_date);
     array<int, 3> p_cur = Movie::parseDate(cur_date);
     vector<const Movie*> ans;
 
     for (const Movie& item : movies) {
         array<int, 3> p_item = Movie::parseDate(item.release_date);
-        if (tie(p_cur[2], p_cur[1], p_cur[0]) < tie(p_item[2], p_item[1], p_item[0]))
+        if (cmp(p_item, p_cur))
             ans.push_back(&item);
     }
 
-    /*
-    copy_if(movies.begin(), movies.end(), back_inserter(ans), [&p_cur](const Movie& item) {
-        array<int, 3> p_item = Movie::parseDate(item.release_date);
-        return tie(p_cur[2], p_cur[1], p_cur[0]) < tie(p_item[2], p_item[1], p_item[0]);
-        });
-    */
     return ans;
 }
 
@@ -174,17 +183,12 @@ vector<int> MoviesManager::prefixFunction(const string& str) {
 
 
 static void lower(string& input) {
-    /*
     wstring_convert<codecvt_utf8_utf16<wchar_t>> converter;
     wstring wideStr = converter.from_bytes(input);
 
     transform(wideStr.begin(), wideStr.end(), wideStr.begin(), towlower);
 
     input = converter.to_bytes(wideStr);
-    */
-    QString str = QString::fromStdString(input);
-    str = str.toLower();
-    input = str.toStdString();
 }
 
 bool MoviesManager::containsWord(string word, string text) {
