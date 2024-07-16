@@ -6,7 +6,7 @@
 #include "MovieModel.h"
 
 namespace Ui {
-class MainWindow;
+class MainWindow; // класс главного окна.
 }
 
 struct MovieOutput;
@@ -63,27 +63,29 @@ private slots:
     void on_helpAction_triggered();
 
 private:
-    Ui::MainWindow *ui;
-    MoviesManager *manager;
-    vector<const Movie*> movies;
-    size_t offset; // window index
-    vector<MovieOutput> moviesOutput;
-    QString dataPath;
+    Ui::MainWindow *ui; // Управление виджетами на окне.
+    MoviesManager *manager; // управление контроллером.
+    vector<const Movie*> movies; // Нужен для реализации области предпросмотра.
+    size_t offset; // Отступ области предпросмотра от начала.
+    vector<MovieOutput> moviesOutput; // Нужен для более удобного вывода фильмов в область предпросмотра.
+    QString dataPath; // Путь к папке data.
 
 
-    void editMovie(const Movie *curMovie);
-    void printMovies() const;
-    void deleteMovie(size_t index);
-    void changeOffset(size_t val);
+    void editMovie(const Movie *curMovie); // Запуск окна редактирования фильма.
+    void printMovies() const; // Вывод фильмов в область предпросмотра.
+    void deleteMovie(size_t index); // Удаление фильма.
+    void changeOffset(size_t val); //  Изменяет отступ и выводит информацию об этом в status bar.
 };
 
 struct MovieOutput{
+    // Структура нужна для более удобного вывода фильмов в область предпросмотра.
     QLabel *label, *date, *poster;
     MovieOutput(QLabel* label, QLabel* date, QLabel* poster):
         label(label), date(date), poster(poster) {}
 };
 
 struct SearchArgs{
+    // Нужна для реализации фильтра поиска. При открытии окна поиска не создается новый фильм, а изменяется переменная данного типа.
     string title;
     string genre;
     string release_date;

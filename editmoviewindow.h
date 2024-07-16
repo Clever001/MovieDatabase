@@ -6,6 +6,8 @@
 #include <list>
 #include "MovieModel.h"
 
+// Окно редактирования фильма.
+
 namespace Ui {
 class EditMovieWindow;
 }
@@ -38,16 +40,16 @@ private slots:
 
 private:
     Ui::EditMovieWindow *ui;
-    Movie *curMovie;
-    MoviesManager *manager;
+    Movie *curMovie; // Указатель на копию редактируемого фильма.
+    MoviesManager *manager; // Указатель на контроллер.
     string oldPosterName, newPosterName;
     string originalName, originalDate;
     list<string> genres;
-    bool isEdited;
+    bool isEdited; // Нужно чтобы понять, удалять новый постер или нет.
 
 
-    bool checkText(const string &title) const;
-    bool checkRating(const string &rating) const;
+    bool checkText(const string &title) const; // Валидация.
+    bool checkRating(const string &rating) const; // Валидация.
     void deleteOldPoster();
     void deleteNewPoster();
 };

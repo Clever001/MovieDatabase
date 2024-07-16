@@ -4,6 +4,8 @@
 #include <QDialog>
 #include "mainWindow.h"
 
+// Заголовочный файл окна создания фильтра поиска.
+
 namespace Ui {
 class ComplexSearchWindow;
 }
@@ -33,9 +35,9 @@ private slots:
 
 private:
     Ui::ComplexSearchWindow *ui;
-    SearchArgs *searchArgs;
+    SearchArgs *searchArgs; // Изменяемый фильтр поиска.
 
-    bool checkText(const string &title) const;
+    bool checkText(const string &title) const; // Типовой валидатор для текстового поля.
 };
 
 #endif // COMPLEXSEARCHWINDOW_H

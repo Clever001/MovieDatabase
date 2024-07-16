@@ -7,6 +7,8 @@ StartWindow::StartWindow(QWidget *parent) :
     ui(new Ui::StartWindow)
 {
     ui->setupUi(this);
+
+    // Установка картинки заставки из файла ресурсов.
     QPixmap pix(":/projectFiles/data/projectImages/screensaver.jpg");
 
     int h = ui->screensaver->height();

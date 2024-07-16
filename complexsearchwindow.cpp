@@ -14,16 +14,18 @@ ComplexSearchWindow::~ComplexSearchWindow()
 {
     delete ui;
 }
-bool ComplexSearchWindow::checkText(const string &title) const{
-    if (title == "") return false;
+bool ComplexSearchWindow::checkText(const string &text) const{
+    // Типовой валидатор для текстового поля.
+    if (text == "") return false;
     for (char ch : "/\\,'`#$;!@\"*&?^:%-+=")
-        if (title.find(ch) != std::string::npos)
+        if (text.find(ch) != std::string::npos)
             return false;
     return true;
 }
 
 void ComplexSearchWindow::on_title_textChanged(const QString &arg1)
 {
+    // Здесь происходит окраска текста в красный в случае неудачной валидации.
     QPalette palette = ui->title->palette();
     if (checkText(arg1.toStdString())){
         palette.setColor(QPalette::Text, Qt::black);
@@ -36,6 +38,7 @@ void ComplexSearchWindow::on_title_textChanged(const QString &arg1)
 
 void ComplexSearchWindow::on_genre_textChanged(const QString &arg1)
 {
+    // Здесь происходит окраска текста в красный в случае неудачной валидации.
     QPalette palette = ui->genre->palette();
     if (checkText(arg1.toStdString())){
         palette.setColor(QPalette::Text, Qt::black);
@@ -48,9 +51,10 @@ void ComplexSearchWindow::on_genre_textChanged(const QString &arg1)
 
 void ComplexSearchWindow::on_date_textChanged(const QString &arg1)
 {
+    // Здесь происходит окраска текста в красный в случае неудачной валидации.
     QPalette palette = ui->date->palette();
     try {
-        Movie::checkDate(ui->date->text().toStdString());
+        Movie::checkDate(ui->date->text().toStdString()); // Проверка даты.
         palette.setColor(QPalette::Text, Qt::black);
     } catch (...) {
         palette.setColor(QPalette::Text, Qt::red);
@@ -60,6 +64,7 @@ void ComplexSearchWindow::on_date_textChanged(const QString &arg1)
 
 void ComplexSearchWindow::on_min_rating_textChanged(const QString &arg1)
 {
+    // Проверка рейтинга на наличие запятых. Также проверяется будет ли выбрасываться ошибка при приведении типов.
     QPalette palette = ui->min_rating->palette();
     string num_str = ui->min_rating->text().toStdString();
     if (num_str.find(',') != string::npos){
@@ -77,6 +82,7 @@ void ComplexSearchWindow::on_min_rating_textChanged(const QString &arg1)
 
 void ComplexSearchWindow::on_max_rating_textChanged(const QString &arg1)
 {
+    // Проверка рейтинга на наличие запятых. Также проверяется будет ли выбрасываться ошибка при приведении типов.
     QPalette palette = ui->max_rating->palette();
     string num_str = ui->max_rating->text().toStdString();
     if (num_str.find(',') != string::npos){
@@ -94,6 +100,9 @@ void ComplexSearchWindow::on_max_rating_textChanged(const QString &arg1)
 
 void ComplexSearchWindow::on_startButton_clicked()
 {
+    // Далее описывается процесс создания фильтра поиска.
+
+    // Инициализация переменных для большего удобства.
     string title = ui->title->text().toStdString();
     string genre = ui->genre->text().toStdString();
     string date = ui->date->text().toStdString();
@@ -101,19 +110,20 @@ void ComplexSearchWindow::on_startButton_clicked()
     string max_rating_str = ui->max_rating->text().toStdString();
 
 
-    if (title != "" && !checkText(ui->title->text().toStdString())){
+    // Проверка переменных на валидность.
+    if (title != "" && !checkText(title)){
         QMessageBox::warning(this, "Создание фильтра", "Перепроверьте название.");
         return;
     }
 
-    if (genre != "" && !checkText(ui->genre->text().toStdString())){
+    if (genre != "" && !checkText(genre)){
         QMessageBox::warning(this, "Создание фильтра", "Перепроверьте жанр.");
         return;
     }
 
     if (date != "") {
         try {
-            Movie::checkDate(ui->date->text().toStdString());
+            Movie::checkDate(date);
         } catch (...) {
             QMessageBox::warning(this, "Создание фильтра", "Перепроверьте дату.");
             return;
@@ -125,6 +135,7 @@ void ComplexSearchWindow::on_startButton_clicked()
             stod(min_rating_str);
         } catch (...) {
             QMessageBox::warning(this, "Создание фильтра", "Перепроверьте минимальный рейтинг.");
+            return;
         }
     }
     if (max_rating_str != ""){
@@ -132,22 +143,19 @@ void ComplexSearchWindow::on_startButton_clicked()
             stod(max_rating_str);
         } catch (...) {
             QMessageBox::warning(this, "Создание фильтра", "Перепроверьте максимальный рейтинг.");
+            return;
         }
     }
 
+    // Инициализация минимального и максимального рейтинга.
+    double min_rating = (min_rating_str == "") ? -1. : stod(min_rating_str);
+    double max_rating = (max_rating_str == "") ? -1. : stod(max_rating_str);
 
-    double min_rating;
-    if (min_rating_str == "")
-        min_rating = -1.;
-    else
-        min_rating = stod(min_rating_str);
-
-    double max_rating;
-    if (max_rating_str == "")
-        max_rating = -1.;
-    else
-        max_rating = stod(max_rating_str);
-
+    /* В следующем фрагменте кода проверяется был ла какой-либо рейтинг пустым.
+     * Если было пусто одно из полей, то второму устанавливается крайнее значение и наоборот.
+     * Если оба поля не были заданы, то не происходит никаких действий.
+     * Если были заданы оба поля и минимальный рейтинг был больше максимального, то выводится ошибка.
+     */
     if (min_rating_str != "" && max_rating_str == ""){
         max_rating = 10.;
     } else if (min_rating_str == "" && max_rating_str != ""){
@@ -157,7 +165,7 @@ void ComplexSearchWindow::on_startButton_clicked()
         return;
     }
 
-
+    // Полям фильтра поиска устанавливаются свои валидные значения. Окно закрывается.
     searchArgs->title = title;
     searchArgs->genre = genre;
     searchArgs->release_date = date;

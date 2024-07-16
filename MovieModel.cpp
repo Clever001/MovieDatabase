@@ -16,6 +16,10 @@ Movie::Movie(const string& title, const string& poster, const string& date,
     const vector<string>& genres, double rating, const string& description)
     : title(title), poster(poster), release_date(date), genres(genres), rating(rating),
     description(description) {
+    /* При переходе в тело конструктора все поля уже проинициализированы.
+     * Теперь лишь нужно проверит. все поля на пустоту и валидность.
+     * Все исключения помечены текстом, чтобы можно было понять в чем проблема.
+     */
     if (title == "") throw length_error("Empty field: title.");
     if (poster == "") throw length_error("Empty field: poster.");
     Movie::checkDate(date);
@@ -26,6 +30,8 @@ Movie::Movie(const string& title, const string& poster, const string& date,
 }
 
 array<int, 3> Movie::parseDate(const string& date) {
+    /* Разбиение даты на дань, месяц и год.
+     */
     array<int, 3> parsed_date{};
     int cur = 0;
     string buf;
@@ -49,6 +55,7 @@ array<int, 3> Movie::parseDate(const string& date) {
 }
 
 bool Movie::isLeap(int year) {
+    // Проверка года на високосность.
     if (!(year % 400)) return true;
     else if (!(year % 100)) return false;
     else if (!(year % 4)) return true;
@@ -56,6 +63,7 @@ bool Movie::isLeap(int year) {
 }
 
 int Movie::daysCount(int month, int year) {
+    // Получение максимального числа дней в месяце.
     switch (month) {
     case 2:
         if (Movie::isLeap(year)) {
@@ -78,6 +86,9 @@ int Movie::daysCount(int month, int year) {
 }
 
 void Movie::checkDate(const string& date) {
+    /* Проверка даты на валидность.
+     * Если дата не валидна - выбрасывается исключение.
+     */
     if (date == "") throw length_error("Empty field: date.");
     for (char ch : date){
         if (ch == ' ') throw invalid_argument("Invalid field: date.");
@@ -90,6 +101,7 @@ void Movie::checkDate(const string& date) {
 }
 
 bool Movie::operator==(const Movie& other) const {
+    // Оператор сравнения двух объектов.
     return (
         this->title == other.title &&
         this->genres == other.genres &&
@@ -101,6 +113,9 @@ bool Movie::operator==(const Movie& other) const {
 }
 
 bool MoviesManager::removeMovie(const string& title, const string& release_date) {
+    /* Удаление фильма.
+     * Так как название и дата взаимно уникальны, по ним ведется поиск удаляемого фильма.
+     */
     for (auto iter = this->begin(); iter != this->end(); iter++) {
         if (iter->title == title && iter->release_date == release_date) {
             this->erase(iter);
@@ -111,6 +126,7 @@ bool MoviesManager::removeMovie(const string& title, const string& release_date)
 }
 
 bool MoviesManager::editMovie(const string& title, const string& release_date, const Movie& movie) {
+    // Редактирование фильма.
     auto iter = find_if(this->begin(), this->end(), [&title, &release_date](const Movie& item) {
         return item.title == title && item.release_date == release_date;
         });
@@ -123,6 +139,7 @@ bool MoviesManager::editMovie(const string& title, const string& release_date, c
 
 vector<const Movie*> MoviesManager::search(const string& title, const string& genre,
     const string& release_date, double min_rating, double max_rating) const {
+    // Поиск нужных фильмов по нескольким ключам.
 
     if (release_date != "") Movie::checkDate(release_date);
 
@@ -146,6 +163,7 @@ vector<const Movie*> MoviesManager::search(const string& title, const string& ge
 }
 
 vector<const Movie*> MoviesManager::search(const string& cur_date, Compare compare) const {
+    // Данный метод нужен для поиска фильмов, вышедших до, после или в определенную дату.
     auto cmp = [compare](const array<int, 3>& p_item, const array<int, 3>& p_cur){
         if (compare == Compare::More) return tie(p_item[2], p_item[1], p_item[0]) > tie(p_cur[2], p_cur[1], p_cur[0]);
         if (compare == Compare::Less) return tie(p_item[2], p_item[1], p_item[0]) < tie(p_cur[2], p_cur[1], p_cur[0]);
@@ -166,6 +184,9 @@ vector<const Movie*> MoviesManager::search(const string& cur_date, Compare compa
 }
 
 vector<int> MoviesManager::prefixFunction(const string& str) {
+    /* Функция нужна для работы метода containsWord, находящего подстроку в строке.
+     * Использование префиксной функции из алгоритма КМП (Кнута, Мориса и Пратта) здесь избыточно.
+     */
     vector<int> pr(str.size());
     for (int i = 1; i != str.size(); ++i) {
         int j = pr[i - 1];
@@ -180,6 +201,7 @@ vector<int> MoviesManager::prefixFunction(const string& str) {
 
 
 static void lower(string& input) {
+    // Переводит строку в нижний регистр.
     /*
     wstring_convert<codecvt_utf8_utf16<wchar_t>> converter;
     wstring wideStr = converter.from_bytes(input);
@@ -194,6 +216,7 @@ static void lower(string& input) {
 }
 
 bool MoviesManager::containsWord(string word, string text) {
+    // Проверяет слово на вхождение в текст.
     lower(word);
     lower(text);
     string workWord = word + '/' + text;
@@ -207,6 +230,7 @@ bool MoviesManager::containsWord(string word, string text) {
 }
 
 void MoviesManager::loadFromDb(const string& db_path) {
+    // Загружает информацию в список из файла json.
     ifstream file(db_path);
     if (!file.is_open()) {
         throw runtime_error("Could not open file for reading.");
@@ -231,6 +255,7 @@ void MoviesManager::loadFromDb(const string& db_path) {
 }
 
 void MoviesManager::saveToDb(const string& db_path) const {
+    // Сохраняет информацию в файл json из списка.
     json j = json::array();
     for (const auto& movie : *this) {
         j.push_back({
@@ -253,6 +278,7 @@ void MoviesManager::saveToDb(const string& db_path) const {
 }
 
 bool MoviesManager::duplicatePoster(const string& poster) const {
+    // Проверяет постер на вхождение. Используется для сохранения уникальности постеров.
     for (auto iter = this->begin(); iter != this->end(); ++iter) {
         if (iter->poster == poster) return true;
     }
@@ -260,6 +286,9 @@ bool MoviesManager::duplicatePoster(const string& poster) const {
 }
 
 bool MoviesManager::duplicateTitleAndDate(const string& title, const string& date) const {
+    /* Проверяет на фхождения пары названия и даты.
+     * Используется для сохранения взаимной уникальности данных полей.
+     */
     for (auto iter = this->begin(); iter != this->end(); ++iter) {
         if (iter->title == title && iter->release_date == date)
             return true;

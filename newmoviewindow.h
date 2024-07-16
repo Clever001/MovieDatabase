@@ -6,6 +6,8 @@
 #include "MovieModel.h"
 #include <list>
 
+// Окно создания фильма.
+
 namespace Ui {
 class NewMovieWindow;
 }
@@ -37,10 +39,10 @@ private slots:
 
 private:
     Ui::NewMovieWindow *ui;
-    MoviesManager *manager;
+    MoviesManager *manager; // Указатель на контроллер.
     list<string> genres;
     string posterName;
-    bool movieIsSaved;
+    bool isSaved;
 
     bool checkText(const string& title) const;
     bool checkRating(const string& rating) const;

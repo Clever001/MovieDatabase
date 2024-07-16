@@ -12,6 +12,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    // Здесь инициализируются все необходимые переменные для работы.
     ui->setupUi(this);
 
     dataPath = QDir::currentPath() + "/data/";
@@ -33,7 +34,7 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
-    // Отображение диалогового окна с вопросом
+    // Отображение диалогового окна с вопросом о сохранении.
     QMessageBox::StandardButton reply;
     reply = QMessageBox::question(this, "Закрытие приложения", "Вы хотите сохранить изменения?",
                                   QMessageBox::Yes | QMessageBox::No);
@@ -45,11 +46,13 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 }
 
 void MainWindow::changeOffset(size_t val){
+    // Изменение отступа, совмещенное с изменением информации на форме.
     offset = val;
     ui->offsetLabel->setText("Отступ: " + QString::fromStdString(to_string(val)));
 }
 
 void MainWindow::printMovies() const {
+    // Выводятся 4 фильма в область предпросмотра с учетом текущего отступа.
     size_t cnt = movies.size();
     for (size_t i = 0; i != 4; ++i) {
         if (i + offset < cnt){
@@ -61,7 +64,7 @@ void MainWindow::printMovies() const {
                 int h = moviesOutput[i].poster->height();
                 int w = moviesOutput[i].poster->width();
                 moviesOutput[i].poster->setPixmap(pixmap.scaled(w,h,Qt::KeepAspectRatio));
-            } else {
+            } else { // Постер не был найден.
                 moviesOutput[i].poster->clear();
                 moviesOutput[i].poster->setText("Картинка не была найдена.");
             }
@@ -77,6 +80,8 @@ void MainWindow::printMovies() const {
 
 void MainWindow::on_newFilmAction_triggered()
 {
+    // Открывается окно создания нового фильма.
+    // После происходит проверка на изменение количества фильмов.
     size_t old_size = manager->size();
     NewMovieWindow window(this, manager);
     window.exec();
@@ -88,29 +93,32 @@ void MainWindow::on_newFilmAction_triggered()
     else if (old_size == manager->size())
         ui->statusBar->showMessage("Новый фильм не был добавлен.");
     else {
+        // Программа никогда сюда не зайдет.
         QMessageBox::warning(this, "Ошибка","Ошибка в работе приложения.");
         close();
     }
 }
 
 void MainWindow::editMovie(const Movie *curMovie) {
+    // Открывается окно редактирования конкретного фильма.
     if (curMovie == nullptr){
         QMessageBox::warning(this, "Изменение фильма", "Такого фильма нет.");
         return;
     }
     Movie tmp = *curMovie;
-    EditMovieWindow window(this, &tmp, manager);
+    EditMovieWindow window(this, &tmp, manager); // Окно взаимодействует с копией.
     window.exec();
-    if (tmp == *curMovie){
+    if (tmp == *curMovie){ // Фильм не был изменен.
         ui->statusBar->showMessage("Фильм не был изменен.");
     }
-    else if (manager->editMovie(curMovie->title, curMovie->release_date, tmp)){
+    else if (manager->editMovie(curMovie->title, curMovie->release_date, tmp)){ // Изменения фильма в списке.
         movies = manager->search();
         changeOffset(0);
         printMovies();
         ui->statusBar->showMessage("Фильм был успешно изменен.");
     }
-    else {
+    else { // Измененный фильм не был науден в списке.
+        // Программа никогда сюда не зайдет (если все идет по плану).
         QMessageBox::warning(this, "Ошибка", "Ошибка в работе приложения.");
         close();
     }
@@ -118,14 +126,16 @@ void MainWindow::editMovie(const Movie *curMovie) {
 
 void MainWindow::on_movie1EditButton_clicked()
 {
+    // Редактирование фильма.
     if (offset < movies.size())
         editMovie(movies[offset]);
     else
-        editMovie(nullptr);
+        editMovie(nullptr); // Произойдет вывод ошибки.
 }
 
 void MainWindow::on_movie2EditButton_clicked()
 {
+    // Редактирование фильма.
     if (offset + 1 < movies.size())
         editMovie(movies[offset + 1]);
     else
@@ -135,6 +145,7 @@ void MainWindow::on_movie2EditButton_clicked()
 
 void MainWindow::on_movie3EditButton_clicked()
 {
+    // Редактирование фильма.
     if (offset + 2 < movies.size())
         editMovie(movies[offset + 2]);
     else
@@ -143,6 +154,7 @@ void MainWindow::on_movie3EditButton_clicked()
 
 void MainWindow::on_movie4EditButton_clicked()
 {
+    // Редактирование фильма.
     if (offset + 3 < movies.size())
         editMovie(movies[offset + 3]);
     else
@@ -151,10 +163,12 @@ void MainWindow::on_movie4EditButton_clicked()
 
 void MainWindow::on_complexSearchButton_clicked()
 {
-    SearchArgs searchArgs;
+    // Поиск фильмов.
+    SearchArgs searchArgs; // Фильтр поиска.
     ComplexSearchWindow window(this, &searchArgs);
     window.exec();
 
+    // Далее ищутся фильмы по фильтру.
     movies = manager->search(searchArgs.title, searchArgs.genre, searchArgs.release_date, searchArgs.min_rating, searchArgs.max_rating);
     changeOffset(0);
     printMovies();
@@ -163,6 +177,7 @@ void MainWindow::on_complexSearchButton_clicked()
 
 void MainWindow::on_saveAction_triggered()
 {
+    // Обработчик события сохранения информации.
     QString savePath = dataPath + "json/";
     QDir().mkpath(savePath);
     savePath += "data.json";
@@ -178,6 +193,7 @@ void MainWindow::on_saveAction_triggered()
 
 void MainWindow::on_loadAction_triggered()
 {
+    // Обработчик события загрузки информации.
     QMessageBox::StandardButton reply;
     reply = QMessageBox::question(this, "Получение информации", "Все текущие данные будут потеряны.\n\nВы точно хотите загрузить информацию из БД?",
                                   QMessageBox::Yes | QMessageBox::No);
@@ -188,9 +204,9 @@ void MainWindow::on_loadAction_triggered()
     if (QFile::exists(savePath)){
         try {
             manager->loadFromDb(savePath.toStdString());
-            movies = manager->search();
+            movies = manager->search(); // Получение указателей на текущие фильмы. Нужно для работы области предпросмотра.
             changeOffset(0);
-            printMovies();
+            printMovies(); // Вывод фильмов.
             QMessageBox::information(this, "Получение информации", "Информация успешно загружена с диска.");
             ui->statusBar->showMessage("Информация загружена с диска.");
         } catch (...) {
@@ -205,30 +221,33 @@ void MainWindow::on_loadAction_triggered()
 
 void MainWindow::on_nextButton_clicked()
 {
-    if (offset < movies.size())
+    // Изменение отступа.
+    if (offset < movies.size()) // Отступ валиден
         changeOffset(offset + 1);
     printMovies();
 }
 
 void MainWindow::on_previousButton_clicked()
 {
-    if (offset > 0)
+    // Изменение отступа.
+    if (offset > 0) // Отступ валиден
         changeOffset(offset - 1);
     printMovies();
 }
 
 void MainWindow::deleteMovie(size_t index) {
+    // Удаление фильма.
     if (offset + index < movies.size()){
         QString posterPath = dataPath + "posters/" + QString::fromStdString(movies[offset + index]->poster);
         if (QFile::exists(posterPath))
             QFile::remove(posterPath);
         manager->removeMovie(movies[offset + index]->title, movies[offset + index]->release_date);
-        movies = manager->search();
+        movies = manager->search(); // вывод всех фильмов.
         changeOffset(0);
         printMovies();
         QMessageBox::information(this, "Удаление фильма", "Фильм успешно удален.");
         ui->statusBar->showMessage("Фильм успешно удален.");
-    } else {
+    } else { // Такого фильма нет.
         QMessageBox::warning(this, "Удаление фильма", "Такого фильма нет.");
         ui->statusBar->showMessage("Такого фильма нет.");
     }
@@ -256,6 +275,7 @@ void MainWindow::on_movie4DelButton_clicked()
 
 void MainWindow::on_lineEdit_textChanged(const QString &arg1)
 {
+    // Поиск фильмов по названию.
     movies = manager->search(ui->lineEdit->text().toStdString());
     changeOffset(0);
     printMovies();
@@ -268,6 +288,7 @@ void MainWindow::on_lineEdit_textChanged(const QString &arg1)
 
 void MainWindow::on_actionnotReleasedAction_triggered()
 {
+    // Показ еще не вышедших в показ фильмов.
     movies = manager->search(QDate::currentDate().toString("dd.MM.yyyy").toStdString(), Compare::More);
     changeOffset(0);
     printMovies();
@@ -276,6 +297,7 @@ void MainWindow::on_actionnotReleasedAction_triggered()
 
 void MainWindow::on_viewAllFilmsAction_triggered()
 {
+    // Показ всех фильмов.
     movies = manager->search();
     changeOffset(0);
     printMovies();
@@ -284,15 +306,17 @@ void MainWindow::on_viewAllFilmsAction_triggered()
 
 void MainWindow::on_aboutAction_triggered()
 {
+    // Показ окна "О программе".
     QMessageBox::about(this, "О программе", "Разработчик программы: студент группы КЭ-243 Никончук Виталий. "
                                                   "\n\nПрограмма предназначена для работы с информацией о фильмах. Проект предоставляет возможность сохранения, "
                                                   "изменения и просмотра информации о фильмах. Информацию можно сохранять в файле формата json. "
                                                   "\n\nЮУрГУ Июль 2024.");
-    QMessageBox::aboutQt(this, "О платформе");
+    QMessageBox::aboutQt(this, "О платформе"); // Вывод информации о Qt.
 }
 
 void MainWindow::on_helpAction_triggered()
 {
+    // Показ информации о помощи.
     QMessageBox::information(this, "Помощь", "<h2>Создание фильма</h2><p>Для создания фильма выберите пункт \"Фильмы->Создать новый фильм\" в основном окне. Далее нужно заполнить поля формы. "
                              "Каждое поле подсвечивается красным, если оно было заполнено не валидными данными. Если вы что-то сделали не так при заполнении информации о фильме"
                              ", то программа об этом сообщит. Для удаления некоректных жанров просто нажмите на него два раза.</p>"

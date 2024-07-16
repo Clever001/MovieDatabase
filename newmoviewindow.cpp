@@ -8,7 +8,7 @@ NewMovieWindow::NewMovieWindow(QWidget *parent, MoviesManager* m) :
     QDialog(parent),
     ui(new Ui::NewMovieWindow),
     manager(m),
-    movieIsSaved(false)
+    isSaved(false)
 {
     ui->setupUi(this);
     ui->poster->setText(QString::fromStdString("Загрузите постер."));
@@ -17,7 +17,7 @@ NewMovieWindow::NewMovieWindow(QWidget *parent, MoviesManager* m) :
 NewMovieWindow::~NewMovieWindow()
 {
     delete ui;
-    if (!movieIsSaved) {
+    if (!isSaved) { // Так как создание нового фильма было отменено, удаляется картинка постера.
         const QString savePath = QDir::currentPath() + "/data/posters/";
         if (posterName != "" && QFile::exists(savePath + QString::fromStdString(posterName))){
             QFile::remove(savePath + QString::fromStdString(posterName));
@@ -26,6 +26,7 @@ NewMovieWindow::~NewMovieWindow()
 }
 
 bool NewMovieWindow::checkText(const string &title) const{
+    // Стандартная валидация текстового поля.
     if (title == "") return false;
     for (char ch : "/\\,'`#$;!@\"*&?^:%-+=")
         if (title.find(ch) != std::string::npos)
@@ -35,6 +36,7 @@ bool NewMovieWindow::checkText(const string &title) const{
 
 void NewMovieWindow::on_newTitle_textChanged(const QString &arg1)
 {
+    // Здесь происходит окраска текста в красный в случае неудачной валидации.
     QPalette palette = ui->newTitle->palette();
     if (checkText(arg1.toStdString())){
         palette.setColor(QPalette::Text, Qt::black);
@@ -47,9 +49,10 @@ void NewMovieWindow::on_newTitle_textChanged(const QString &arg1)
 
 void NewMovieWindow::on_newDate_textChanged(const QString &arg1)
 {
+    // Здесь происходит окраска текста в красный в случае неудачной валидации.
     QPalette palette = ui->newDate->palette();
     try {
-        Movie::checkDate(arg1.toStdString());
+        Movie::checkDate(arg1.toStdString()); // Проверка даты.
         palette.setColor(QPalette::Text, Qt::black);
     }
     catch (...) {
@@ -60,6 +63,7 @@ void NewMovieWindow::on_newDate_textChanged(const QString &arg1)
 
 void NewMovieWindow::on_newGenre_textChanged(const QString &arg1)
 {
+    // Здесь происходит окраска текста в красный в случае неудачной валидации.
     QPalette palette = ui->newGenre->palette();
     if (checkText(arg1.toStdString())){
         palette.setColor(QPalette::Text, Qt::black);
@@ -72,6 +76,7 @@ void NewMovieWindow::on_newGenre_textChanged(const QString &arg1)
 
 void NewMovieWindow::on_newGenresList_itemDoubleClicked(QListWidgetItem *item)
 {
+    // Удаление выбранного жанра.
     auto iter = std::find(genres.begin(), genres.end(), item->text().toStdString());
     if (iter == genres.end()){
         QMessageBox::warning(this, "Ошибка", "Удаляемый жанр фильма не был найден.");
@@ -83,6 +88,7 @@ void NewMovieWindow::on_newGenresList_itemDoubleClicked(QListWidgetItem *item)
 
 void NewMovieWindow::on_addGenreButton_clicked()
 {
+    // Добавление нового жанра при условии его валидности и уникальности.
     QString genre = ui->newGenre->text();
     if (checkText(genre.toStdString()) && std::find(genres.begin(), genres.end(), genre.toStdString()) == genres.end()){
         genres.push_back(genre.toStdString());
@@ -95,6 +101,7 @@ void NewMovieWindow::on_addGenreButton_clicked()
 }
 
 bool NewMovieWindow::checkRating(const string &rating) const {
+    // Проверка рейтинга на наличие запятых и соответствие диапазоны [0, 10].
     double num;
     try {
         num = stod(rating);
@@ -108,20 +115,14 @@ bool NewMovieWindow::checkRating(const string &rating) const {
 
 void NewMovieWindow::on_newRating_textChanged(const QString &arg1)
 {
+    // Здесь происходит окраска текста в красный в случае неудачной валидации.
     QPalette palette = ui->newRating->palette();
-    double num = -1;
-    try {
-        num = stod(arg1.toStdString());
-        palette.setColor(QPalette::Text, Qt::black);
-    } catch (...) {
-        palette.setColor(QPalette::Text, Qt::red);
-    }
-    if (num < 0. || num > 10. || arg1.toStdString().find(',') != string::npos)
-        palette.setColor(QPalette::Text, Qt::red);
+    palette.setColor(QPalette::Text, (checkRating(arg1.toStdString())) ? Qt::black : Qt::red);
     ui->newRating->setPalette(palette);
 }
 
-void NewMovieWindow::deleteCurPoster(){
+void NewMovieWindow::deleteCurPoster() {
+    // Удаление текущего постера.
     const QString savePath = QDir::currentPath() + "/data/posters/";
     if (posterName != "" && QFile::exists(savePath + QString::fromStdString(posterName))){
         QFile::remove(savePath + QString::fromStdString(posterName));
@@ -132,6 +133,7 @@ void NewMovieWindow::deleteCurPoster(){
 
 void NewMovieWindow::on_loadPosterButton_clicked()
 {
+    // Загрузка нового постера.
     const QString posterPath = QFileDialog::getOpenFileName(this, "Выберите изображение", "", "Images (*.png *.jpg)");
     if (posterPath.isEmpty()) {
         QMessageBox::warning(this, "Обработка изображения", "При загрузке изображения возникла ошибка!");
@@ -143,14 +145,14 @@ void NewMovieWindow::on_loadPosterButton_clicked()
     const QString savePath = QDir::currentPath() + "/data/posters/";
     QDir().mkpath(savePath);
     QString fileName = QFileInfo(posterPath).fileName();
-    while (manager->duplicatePoster(fileName.toStdString())){
+    while (manager->duplicatePoster(fileName.toStdString())){ // Проверка названия на дупликацию.
         fileName = QString::fromStdString("_") + fileName;
     }
     QString fullSavePath = savePath + fileName;
 
 
     if (QFile::copy(posterPath, fullSavePath)){
-        posterName = fileName.toStdString();
+        posterName = fileName.toStdString(); // Установка нового названия.
         int h = ui->poster->height();
         int w = ui->poster->width();
         QPixmap pixmap(fullSavePath);
@@ -164,6 +166,9 @@ void NewMovieWindow::on_loadPosterButton_clicked()
 
 void NewMovieWindow::on_addMovieButton_clicked()
 {
+    // Создание нового фильма.
+
+    // Инициализация переменных для удобства.
     string title = ui->newTitle->text().toStdString();
     string date = ui->newDate->text().toStdString();
     // genres
@@ -171,6 +176,7 @@ void NewMovieWindow::on_addMovieButton_clicked()
     string rating_str = ui->newRating->text().toStdString();
     string description = ui->newDescription->toPlainText().toStdString();
 
+    // Валидация всех полей.
     if (!checkText(title)){
         QMessageBox::warning(this, "Создание фильма", "Перепроверьте заголовок.");
         return;
@@ -207,6 +213,7 @@ void NewMovieWindow::on_addMovieButton_clicked()
         return;
     }
 
+    // Проверка названия и даты на валидность.
     if (manager->duplicateTitleAndDate(title, date)){
         QMessageBox::warning(this, "Создание фильма", "Фильм с таким названием и датой выхода в прокат уже создан. "
                                                       "Так как оба эти поля должны быть взаимно уникальны поменяйте название фильма или "
@@ -215,13 +222,14 @@ void NewMovieWindow::on_addMovieButton_clicked()
     }
 
 
+    // Создание нового фильма.
     try {
         Movie newMovie(title, posterName, date, vector<string>(genres.begin(), genres.end()), rating, description);
         manager->push_back(newMovie);
-        movieIsSaved = true;
-        QMessageBox::warning(this, "Создание фильма", "Фильм успешно сохранен!");
+        isSaved = true;
+        QMessageBox::information(this, "Создание фильма", "Фильм успешно сохранен!");
     } catch (...) {
-        movieIsSaved = false;
+        isSaved = false;
         QMessageBox::warning(this, "Создание фильма", "Произошла неизвестная ошибка при создании фильма.");
         return;
     }

@@ -3,6 +3,8 @@
 
 #include <QDialog>
 
+// Окно заставки.
+
 namespace Ui {
 class StartWindow;
 }
