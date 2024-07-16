@@ -54,6 +54,13 @@ void NewMovieWindow::on_newDate_textChanged(const QString &arg1)
     try {
         Movie::checkDate(arg1.toStdString()); // Проверка даты.
         palette.setColor(QPalette::Text, Qt::black);
+        auto parsed_rating = Movie::parseDate(arg1.toStdString());
+        string rating_str;
+        for (int i = 0; i != 3; ++i){
+            rating_str += to_string(parsed_rating[i]);
+            if (i != 2) rating_str += '.';
+        }
+        ui->newDate->setText(QString::fromStdString(rating_str));
     }
     catch (...) {
         palette.setColor(QPalette::Text, Qt::red);

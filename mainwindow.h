@@ -62,9 +62,15 @@ private slots:
 
     void on_helpAction_triggered();
 
+    void on_sortByTitleAction_triggered();
+
+    void on_sortByDateAction_triggered();
+
+    void on_sortByRatingAction_triggered();
+
 private:
     Ui::MainWindow *ui; // Управление виджетами на окне.
-    MoviesManager *manager; // управление контроллером.
+    MoviesManager *manager; // Управление контроллером.
     vector<const Movie*> movies; // Нужен для реализации области предпросмотра.
     size_t offset; // Отступ области предпросмотра от начала.
     vector<MovieOutput> moviesOutput; // Нужен для более удобного вывода фильмов в область предпросмотра.

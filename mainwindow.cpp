@@ -326,5 +326,38 @@ void MainWindow::on_helpAction_triggered()
                              "<h2>Установка фильтра поиска</h2><p>В основном окне нажмите \"Использовать сложный поиск\". Заполните необходимые поля (все поля необязательные к заполнению). "
                              "Примените фильтр.</p>"
                              "<h2>Поиск не вышедших фильмов</h2><p>Для поиска невышедших фильмов выберите пункт \"Фильмы->Поиск невышедших фильмов\" в основном окне программы.</p>"
+                             "<h2>Сортировка</h2><p>В пункте \"Фильмы->Сортировка\" есть несколько подпунктов, выбрав которые можно отсортировать фильмы, находящиеся в главном окне.</p>"
                              "<h2>Сохранение/загрузка изменений</h2><p>Нажимайте соответствующие кнопки меню в пункте \"Файл\".</p>");
+}
+
+void MainWindow::on_sortByTitleAction_triggered()
+{
+    // Сортировка по названию.
+    sort(movies.begin(), movies.end(), [](const Movie* lhs, const Movie* rhs){
+        return lhs->title < rhs->title;
+    });
+    changeOffset(0);
+    printMovies();
+}
+
+void MainWindow::on_sortByDateAction_triggered()
+{
+    // Сортировка по дате выхода в прокат.
+    sort(movies.rbegin(), movies.rend(), [](const Movie* lhs, const Movie* rhs){
+        array<int, 3> parsed_lhs = Movie::parseDate(lhs->release_date);
+        array<int, 3> parsed_rhs = Movie::parseDate(rhs->release_date);
+        return tie(parsed_lhs[2], parsed_lhs[1], parsed_lhs[0]) < tie(parsed_rhs[2], parsed_rhs[1], parsed_rhs[0]);
+    });
+    changeOffset(0);
+    printMovies();
+}
+
+void MainWindow::on_sortByRatingAction_triggered()
+{
+    // Сортировка по рейтингу.
+    sort(movies.rbegin(), movies.rend(), [](const Movie* lhs, const Movie* rhs){
+        return lhs->rating < rhs->rating;
+    });
+    changeOffset(0);
+    printMovies();
 }
